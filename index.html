@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>3 Biggest Challenges in Fine-Tuning LLMs (2025) — Interactive</title>
+  <meta name="description" content="Interactive frontend-focused guide: Compute costs, Data quality & privacy, Latency & UX — with cards, expand/collapse, modals and smooth navigation." />
+<style>
+  :root {
+    --bg: #f6f8fb;
+    --panel: #ffffff;
+    --accent: #0066ff;
+    --muted: #5c6b7a;
+    --soft: #e7edf5;
+    --radius: 14px;
+    --gap: 20px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: "Segoe UI", Roboto, Inter, sans-serif;
+    background: var(--bg);
+    color: #1b1f24;
+    line-height: 1.55;
+  }
+
+  .container { max-width: 1100px; margin: 28px auto; padding: 20px; }
+
+  header { display: flex; gap: 18px; align-items: flex-start; }
+  .logo {
+    width: 72px; height: 72px; border-radius: 14px;
+    object-fit: cover; border: 2px solid #e5ebf1;
+  }
+  h1 { margin: 0; font-size: 24px; color: #002b6e; }
+  p.lead { margin: 8px 0 0; color: var(--muted); max-width: 760px; }
+
+  /* === Buttons === */
+  .btn {
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .25s ease;
+  }
+  .btn.primary {
+    background: linear-gradient(90deg, #0066ff, #00a6ff);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(0,102,255,0.25);
+  }
+  .btn.ghost {
+    background: transparent;
+    border: 1px solid #cfd9e6;
+    color: #3b4b5c;
+  }
+  .btn:hover { transform: translateY(-1px); }
+
+  /* === Home cards === */
+  .home {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--gap);
+    margin-top: 26px;
+  }
+  .card {
+    background: var(--panel);
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 1px solid #e3eaf3;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: all .25s ease;
+  }
+  .card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+  }
+  .card h3 { margin: 0 0 8px; font-size: 18px; color: #0045a1; }
+  .card p { margin: 0; color: var(--muted); font-size: 14px; }
+  .card .tag {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #edf3fb;
+    color: #3b4b5c;
+    font-size: 13px;
+  }
+
+  /* === Detail sections === */
+  main { margin-top: 30px; display: flex; flex-direction: column; gap: 22px; }
+  section.detail {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 20px;
+    padding: 20px;
+    background: var(--panel);
+    border-radius: var(--radius);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+  }
+  .detail h2 { margin: 0 0 8px; color: #003377; }
+  .meta { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+
+  .examples, .mitigations {
+    background: #f3f6fb;
+    padding: 12px;
+    border-radius: 10px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .mitigations .pill {
+    display: inline-block;
+    margin: 6px 6px 0 0;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #e7edf8;
+    color: #004e99;
+    font-size: 13px;
+    border: 1px solid #d3e1f5;
+  }
+
+  .imgbox {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e1e6ee;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  .imgbox img {
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+  }
+
+  /* === Expand/collapse buttons === */
+  .toggle {
+    background: transparent;
+    border: none;
+    color: #0066ff;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 6px 10px;
+  }
+
+  /* === Modal === */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1200; opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+  .modal {
+    width: min(860px, 94%);
+    background: #fff;
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 12px 38px rgba(0,0,0,0.25);
+    transform: translateY(12px);
+    transition: transform .25s;
+  }
+  .modal-backdrop.open .modal { transform: none; }
+  .modal img {
+    width: 320px; height: 200px;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+  .modal h3 { color: #002b6e; margin: 0; }
+
+  /* === Back to top === */
+  .top-btn {
+    position: fixed; right: 22px; bottom: 22px;
+    padding: 12px 16px;
+    border-radius: 999px;
+    background: linear-gradient(90deg,#0066ff,#00a6ff);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 10px 22px rgba(0,102,255,0.35);
+    z-index: 1000;
+  }
+
+  /* === Responsive === */
+  @media (max-width: 980px) {
+    section.detail { grid-template-columns: 1fr; }
+    .imgbox { order: -1; }
+    header { flex-direction: column; align-items: flex-start; }
+  }
+
+  .hidden { display: none; }
+</style>
+    
+</head>
+<body>
+  <div class="container" id="app">
+    <header>
+      <img class="logo" src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=1b2c3d" alt="AI" />
+      <div>
+        <h1>3 Biggest Challenges in Fine-Tuning LLMs (2025)</h1>
+        <p class="lead">A frontend developer’s interactive guide — click a card to explore details, expand/collapse content, or open a modal with deeper explanation and imagery.</p>
+      </div>
+
+      <div class="top-actions" role="toolbar" aria-label="Actions">
+        <button class="btn ghost" id="copySummary">Copy single-paragraph summary</button>
+        <button class="btn" id="toggleView">Toggle home/details</button>
+      </div>
+    </header>
+
+    <!-- Home cards -->
+    <section class="home" id="homeCards" aria-label="Challenges">
+      <article class="card" data-key="compute" tabindex="0" role="button" aria-pressed="false">
+        <h3>Compute &amp; Infrastructure Costs</h3>
+        <p>High GPU/TPU requirements, memory and orchestration costs that block fast iteration.</p>
+        <div class="tag">Impact: slower feature velocity</div>
+      </article>
+
+      <article class="card" data-key="data" tabindex="0" role="button" aria-pressed="false">
+        <h3>Data Quality, Privacy &amp; Domain Fit</h3>
+        <p>Curating clean, private, and representative datasets is difficult but essential.</p>
+        <div class="tag">Impact: bias & leakage risk</div>
+      </article>
+
+      <article class="card" data-key="ux" tabindex="0" role="button" aria-pressed="false">
+        <h3>Latency, Integration &amp; UX Constraints</h3>
+        <p>Serving fine-tuned models introduces latency and format/consistency issues for UIs.</p>
+        <div class="tag">Impact: broken UX & user churn</div>
+      </article>
+    </section>
+
+    <!-- Detailed sections -->
+    <main id="details">
+      <!-- Compute -->
+      <section id="compute" class="detail" aria-labelledby="t-compute">
+        <div>
+          <h2 id="t-compute">Compute &amp; Infrastructure Costs</h2>
+          <div class="meta">Definition &mdash; Why frontend devs should care</div>
+          <p><strong>Definition:</strong> Training or fine-tuning large models demands GPUs/TPUs, orchestration, disk and network I/O; this raises monetary and time costs.</p>
+          <p><strong>Frontend impact:</strong> Teams cannot iterate quickly; prototypes and A/B tests that rely on model changes become expensive and slow, increasing development cycles.</p>
+
+          <div class="examples">
+            <strong>Examples:</strong>
+            <ul>
+              <li>A single experiment taking hours and costing hundreds of dollars.</li>
+              <li>Developers unable to reproduce tuned model behavior locally, causing long feedback loops.</li>
+            </ul>
+          </div>
+
+          <div class="expander">
+            <button class="toggle btn" data-action="toggle" data-target="compute-more">Expand details</button>
+            <button class="btn" data-action="open-modal" data-key="compute">Open modal</button>
+          </div>
+
+          <div id="compute-more" class="hidden" style="margin-top:12px">
+            <div class="mitigations">
+              <strong>Mitigations:</strong>
+              <div class="pill">PEFT / LoRA (parameter-efficient fine-tuning)</div>
+              <div class="pill">Model distillation &amp; quantization</div>
+              <div class="pill">Spot instances, reproducible CI, experiment budgets</div>
+              <div class="pill">Track cost-per-experiment &amp; auto-prune failed runs</div>
+            </div>
+            <p style="margin-top:10px" class="muted">When to use these: for experimental cycles, prototype shipping, and any feature where iteration speed matters.</p>
+          </div>
+        </div>
+
+        <aside class="imgbox" aria-hidden="false">
+          <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=abcd1234" alt="GPU servers and racks" />
+        </aside>
+      </section>
+
+      <!-- Data -->
+      <section id="data" class="detail" aria-labelledby="t-data">
+        <div>
+          <h2 id="t-data">Data Quality, Privacy &amp; Domain Adaptation</h2>
+          <div class="meta">Definition &mdash; Why frontend devs should care</div>
+          <p><strong>Definition:</strong> Fine-tuning requires curated, representative, and privacy-safe datasets; poor data leads to bias, PII leakage, and poor domain performance.</p>
+          <p><strong>Frontend impact:</strong> UGC-driven features can accidentally leak private content or produce biased outputs without strong pipelines and consent mechanisms.</p>
+
+          <div class="examples">
+            <strong>Examples:</strong>
+            <ul>
+              <li>Chat logs included in training causing a model to echo private messages.</li>
+              <li>Model underperforms for specific locales because training data lacked regional examples.</li>
+            </ul>
+          </div>
+
+          <div class="expander">
+            <button class="toggle btn" data-action="toggle" data-target="data-more">Expand details</button>
+            <button class="btn" data-action="open-modal" data-key="data">Open modal</button>
+          </div>
+
+          <div id="data-more" class="hidden" style="margin-top:12px">
+            <div class="mitigations">
+              <strong>Mitigations:</strong>
+              <div class="pill">Anonymization &amp; PII redaction</div>
+              <div class="pill">Holdout validation sets and bias audits</div>
+              <div class="pill">Synthetic data augmentation</div>
+              <div class="pill">Differential privacy &amp; consent-first collection</div>
+            </div>
+            <p style="margin-top:10px" class="muted">When to use these: always for production-facing features that rely on user data or public corpora.</p>
+          </div>
+        </div>
+
+        <aside class="imgbox">
+          <img src="https://images.unsplash.com/photo-1526378724041-8e3d9f4a9b4e?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=efgh5678" alt="Data and privacy illustration" />
+        </aside>
+      </section>
+
+      <!-- UX -->
+      <section id="ux" class="detail" aria-labelledby="t-ux">
+        <div>
+          <h2 id="t-ux">Latency, Integration &amp; User Experience Constraints</h2>
+          <div class="meta">Definition &mdash; Why frontend devs should care</div>
+          <p><strong>Definition:</strong> Serving fine-tuned models brings latency, cost-per-query, and consistency challenges that impact the interactivity and reliability of user interfaces.</p>
+          <p><strong>Frontend impact:</strong> Slow or inconsistent outputs break UX; engineers must design fallbacks, streaming, and structured outputs to keep apps responsive and safe.</p>
+
+          <div class="examples">
+            <strong>Examples:</strong>
+            <ul>
+              <li>Search assistant responses take many seconds, causing users to abandon tasks.</li>
+              <li>Model returns long freeform text when the UI expects compact JSON or structured results.</li>
+            </ul>
+          </div>
+
+          <div class="expander">
+            <button class="toggle btn" data-action="toggle" data-target="ux-more">Expand details</button>
+            <button class="btn" data-action="open-modal" data-key="ux">Open modal</button>
+          </div>
+
+          <div id="ux-more" class="hidden" style="margin-top:12px">
+            <div class="mitigations">
+              <strong>Mitigations:</strong>
+              <div class="pill">Response streaming &amp; progressive rendering</div>
+              <div class="pill">Client-side caching, re-ranking &amp; token limits</div>
+              <div class="pill">Lightweight on-device models for critical fallbacks</div>
+              <div class="pill">Confidence scores &amp; structured output constraints</div>
+            </div>
+            <p style="margin-top:10px" class="muted">When to use these: for all real-time user-facing features where responsiveness is critical.</p>
+          </div>
+        </div>
+
+        <aside class="imgbox">
+          <img src="https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=ijkl9012" alt="UX and latency" />
+        </aside>
+      </section>
+
+      <!-- Summary -->
+      <section id="summary" style="padding:18px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.006), rgba(255,255,255,0.004));border:1px solid var(--card-border)">
+        <h2>Summary — Frontend priorities</h2>
+        <p>To successfully use fine-tuned LLMs, frontend teams should combine three pillars:</p>
+        <ol>
+          <li><strong>Cost-aware experimentation</strong> — PEFT, distillation, experiment budgets.</li>
+          <li><strong>Data governance</strong> — anonymization, holdouts, bias audits.</li>
+          <li><strong>UX-first delivery</strong> — streaming, caching, fallbacks, structured outputs.</li>
+        </ol>
+        <p class="muted">Tip: Use the top "Copy single-paragraph summary" button to paste into forms or submissions.</p>
+      </section>
+    </main>
+
+    <footer style="margin-top:22px;color:var(--muted);font-size:13px;text-align:center">
+      © 2025 — Interactive Frontend LLM Guide. Images via Unsplash (illustrative).
+    </footer>
+  </div>
+
+  <!-- Modal markup -->
+  <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal" role="document" aria-labelledby="modalTitle">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div>
+          <h3 id="modalTitle" style="margin:0">Title</h3>
+          <div id="modalSubtitle" class="muted" style="font-size:13px;margin-top:6px">Subtitle</div>
+        </div>
+        <div>
+          <button class="btn" id="closeModal">Close</button>
+        </div>
+      </div>
+
+      <div class="row" style="gap:14px;align-items:flex-start">
+        <img id="modalImg" src="" alt="" />
+        <div style="flex:1">
+          <p id="modalDesc" class="muted">Description</p>
+          <div id="modalExtra" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button id="backTop" class="top-btn" title="Back to top">Top</button>
+
+  <script>
+    /* ========== Data & helpers ========== */
+    const data = {
+      compute: {
+        title: 'Compute & Infrastructure Costs',
+        subtitle: 'High GPU/TPU costs and orchestration',
+        img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=abcd1234',
+        desc: `Fine-tuning modern LLMs requires specialized hardware (GPUs/TPUs), memory and orchestration. For frontend teams this means slower iteration and higher per-experiment costs.`,
+        extra: `<strong>Mitigations:</strong> Use parameter-efficient fine-tuning (LoRA/PEFT), model distillation & quantization, spot instances, reproducible CI and experiment budget tracking.`
+      },
+      data: {
+        title: 'Data Quality, Privacy & Domain Adaptation',
+        subtitle: 'Curating safe and representative datasets',
+        img: 'https://images.unsplash.com/photo-1526378724041-8e3d9f4a9b4e?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=efgh5678',
+        desc: `Training data must be cleaned, de-duplicated and free of PII or copyrighted text. Poor data causes bias, leakage and poor regional performance.`,
+        extra: `<strong>Mitigations:</strong> Anonymize and redact PII, use holdout validation sets and bias audits, synthetic augmentation, and differential privacy or consent-first collection.`
+      },
+      ux: {
+        title: 'Latency, Integration & UX Constraints',
+        subtitle: 'Serving models without hurting UX',
+        img: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=ijkl9012',
+        desc: `Serving fine-tuned models introduces latency and format/consistency problems. Frontend apps must account for responsiveness and structured outputs.`,
+        extra: `<strong>Mitigations:</strong> Response streaming, client caching & re-ranking, on-device tiny models for fallbacks, confidence scores and output constraints.`
+      }
+    };
+
+    const cards = document.querySelectorAll('.card');
+    const toggleViewBtn = document.getElementById('toggleView');
+    const homeCards = document.getElementById('homeCards');
+    const backTop = document.getElementById('backTop');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSubtitle = document.getElementById('modalSubtitle');
+    const modalImg = document.getElementById('modalImg');
+    const modalDesc = document.getElementById('modalDesc');
+    const modalExtra = document.getElementById('modalExtra');
+    const closeModalBtn = document.getElementById('closeModal');
+    const copySummaryBtn = document.getElementById('copySummary');
+
+    /* ========== Card click behavior ==========
+       Clicking a card:
+         - smooth scrolls to the section with id = data-key
+         - expands the hidden extra content in that section (if collapsed)
+         - opens modal if user presses metaKey (optional)
+    ========================================== */
+    function onCardActivate(key, openModal=false){
+      const section = document.getElementById(key);
+      if(!section) return;
+      // smooth scroll to section (accounting for small top spacing)
+      section.scrollIntoView({behavior:'smooth', block:'center'});
+      // expand (if hidden)
+      const more = section.querySelector(`#${key}-more`);
+      if(more && more.classList.contains('hidden')) more.classList.remove('hidden');
+      // aria-press state for cards
+      cards.forEach(c=>c.setAttribute('aria-pressed','false'));
+      const card = document.querySelector(`.card[data-key="${key}"]`);
+      if(card) card.setAttribute('aria-pressed','true');
+
+      // Open modal if requested
+      if(openModal) openModalWithKey(key);
+    }
+
+    cards.forEach(card=>{
+      card.addEventListener('click', (e)=>{
+        const key = card.dataset.key;
+        onCardActivate(key, e.shiftKey || e.ctrlKey); // hold shift/ctrl to open modal too
+      });
+      card.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+      });
+    });
+
+    /* ========== Expand / collapse buttons ==========
+       Each .toggle button has data-target pointing to #<id>-more
+    ========================================== */
+    document.querySelectorAll('.toggle').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const tgt = btn.dataset.target;
+        const el = document.getElementById(tgt);
+        if(!el) return;
+        const isHidden = el.classList.contains('hidden');
+        if(isHidden){
+          el.classList.remove('hidden');
+          btn.textContent = 'Collapse';
+        } else {
+          el.classList.add('hidden');
+          btn.textContent = 'Expand details';
+        }
+      });
+    });
+
+    /* ========== Modal logic ========= */
+    function openModalWithKey(key){
+      const obj = data[key];
+      if(!obj) return;
+      modalTitle.textContent = obj.title;
+      modalSubtitle.textContent = obj.subtitle;
+      modalImg.src = obj.img;
+      modalImg.alt = obj.title + ' image';
+      modalDesc.textContent = obj.desc;
+      modalExtra.innerHTML = obj.extra;
+      modalBackdrop.classList.add('open');
+      modalBackdrop.setAttribute('aria-hidden','false');
+      // trap focus briefly
+      closeModalBtn.focus();
+    }
+    function closeModal(){
+      modalBackdrop.classList.remove('open');
+      modalBackdrop.setAttribute('aria-hidden','true');
+    }
+    document.querySelectorAll('[data-action="open-modal"]').forEach(btn=>{
+      btn.addEventListener('click', ()=> openModalWithKey(btn.dataset.key));
+    });
+    closeModalBtn.addEventListener('click', closeModal);
+    modalBackdrop.addEventListener('click', (e)=>{ if(e.target === modalBackdrop) closeModal(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
+
+    /* ========== Toggle home/details view ========= */
+    let homeVisible = true;
+    toggleViewBtn.addEventListener('click', ()=>{
+      homeVisible = !homeVisible;
+      homeCards.style.display = homeVisible ? 'grid' : 'none';
+      toggleViewBtn.textContent = homeVisible ? 'Hide home cards' : 'Show home cards';
+    });
+
+    /* ========== Back to top ========= */
+    backTop.addEventListener('click', ()=> window.scrollTo({top:0,behavior:'smooth'}));
+    // show/hide based on scroll
+    window.addEventListener('scroll', ()=>{
+      const show = window.scrollY > 400;
+      backTop.style.display = show ? 'inline-block' : 'none';
+    });
+    // initially hidden
+    backTop.style.display = 'none';
+
+    /* ========== Copy one-paragraph summary ========= */
+    function buildSingleParagraph(){
+      return `In 2025, frontend developers face three major fine-tuning challenges: (1) Compute & Infrastructure Costs — heavy GPU/TPU and orchestration expenses that slow iteration; (2) Data Quality, Privacy & Domain Fit — the need for curated, anonymized, and representative datasets to avoid bias and leakage; (3) Latency, Integration & UX Constraints — trade-offs between model size, responsiveness and structured outputs requiring streaming, caching and fallbacks.`;
+    }
+    copySummaryBtn.addEventListener('click', async ()=>{
+      const text = buildSingleParagraph();
+      try{
+        await navigator.clipboard.writeText(text);
+        copySummaryBtn.textContent = 'Copied ✓';
+        setTimeout(()=> copySummaryBtn.textContent = 'Copy single-paragraph summary', 1800);
+      }catch(err){
+        alert('Copy failed — select & copy manually:\n\n' + text);
+      }
+    });
+
+    /* ========== Deep-link via hash on page load ========= */
+    function handleHash(){
+      const hash = location.hash.replace('#','');
+      if(hash && document.getElementById(hash)){
+        // open and scroll
+        setTimeout(()=> onCardActivate(hash), 200);
+      }
+    }
+    window.addEventListener('hashchange', handleHash);
+    window.addEventListener('load', handleHash);
+
+    /* ========== Accessibility hints ========= */
+    // Provide skip to content if needed (not added visually), and ensure keyboard focus works on cards (tabindex used)
+
+    // End of script
+  </script>
+  
+</body>
+</html>
+`
